@@ -219,8 +219,13 @@ function(add_link_opts target_name)
         set_property(TARGET ${target_name} APPEND_STRING PROPERTY
                      LINK_FLAGS " -Wl,-dead_strip")
       elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-        set_property(TARGET ${target_name} APPEND_STRING PROPERTY
-                     LINK_FLAGS " -Wl,-z -Wl,discard-unused=sections")
+        include(CheckLinkerFlag)
+        check_linker_flag("-Wl,-z -Wl,discard-unused=sections"
+                          LINKER_SUPPORTS_DISCARD_UNUSED)
+        if(LINKER_SUPPORTS_DISCARD_UNUSUSED)
+          set_property(TARGET ${target_name} APPEND_STRING PROPERTY
+                       LINK_FLAGS " -Wl,-z -Wl,discard-unused=sections")
+        endif()
       elseif(NOT WIN32 AND NOT LLVM_LINKER_IS_GOLD AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
         # Object files are compiled with -ffunction-data-sections.
         # Versions of bfd ld < 2.23.1 have a bug in --gc-sections that breaks
